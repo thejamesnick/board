@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Board",
+  "version": "2.0",
+  "description": "Your own world on every new tab: draggable cards, checklists, links, images, countdowns and reminders.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgpIJwYIad7Qlv+4Ur8y7kbEBIJrVB14yUAttstSHgfzbALJ3LaBKkdWyrdxT35i5Gsy7ro4eFNQJNp51WZpY0OlNQxGTIvrJQ+38dFFrYyR+b2s7J2jWGn7m7aarPmrK3GWXGW+5pEpT5l8d5Hrysr4YUAwW2YrjesbL85yi+hV/N0NNRWcwUyq5xrDjfXihlqnNsfMirmbychXFFt7JdOWvrD4MWAzMJhxw6ZpYSoCq1iEpZZvnZ4qvwLIwnx+dUGXQIkOwthwUIp/CtD1NkdBYzkJhfaccRq/ctVp0mNNZCfC2xZSz7l7dt3I4S8qEDUcRkZTcv47cE13vuWhAQQIDAQAB",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "chrome_url_overrides": { "newtab": "newtab.html" },
+  "background": { "service_worker": "background.js" },
+  "permissions": ["storage", "unlimitedStorage", "alarms", "notifications", "favicon"]
+}

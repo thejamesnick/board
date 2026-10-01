@@ -1,0 +1,69 @@
+/* ---------- menus & popovers ---------- */
+.floating { position: fixed; z-index: 100; animation: float-in .12s ease-out; }
+@keyframes float-in { from { opacity: 0; transform: translateY(-4px); } }
+
+.menu, .popover {
+  min-width: 220px;
+  max-width: 300px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.menu-heading { padding: 8px 10px 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.menu-sep { height: 1px; margin: 6px 4px; background: var(--line); }
+.menu-note { padding: 4px 10px 8px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.menu-item {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  font-size: 14px;
+}
+.menu-item:hover { background: var(--panel-2); }
+.menu-item.danger { color: var(--danger); }
+.menu-check { color: var(--accent); font-size: 12px; }
+.menu-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.popover { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+.pop-title { font: italic 20px var(--serif); }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  font-size: 12px;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.pop-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-2);
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  pointer-events: none;
+  transition: opacity .2s, transform .2s var(--ease);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.toast-action { padding: 0; border: 0; background: none; color: var(--accent); font-weight: 600; }

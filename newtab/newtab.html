@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Board</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/topbar.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="hello">
+      <div class="clock">
+        <span id="clock-hm" class="clock-hm"></span><span id="clock-s" class="clock-s"></span><span id="clock-ap" class="clock-ap"></span>
+      </div>
+      <div id="greeting" class="greeting"></div>
+    </div>
+
+    <div class="search-wrap">
+      <form id="search" class="search" action="https://www.google.com/search" method="get">
+        <input name="q" placeholder="Search your cards or the web…" autocomplete="off">
+      </form>
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+
+    <div class="actions">
+      <button id="board-btn" class="btn board-btn" title="Switch boards"><span id="board-name"></span></button>
+      <button id="menu-btn" class="btn icon-btn" title="Menu"></button>
+    </div>
+  </header>
+
+  <main id="viewport" class="viewport" data-bg="dots">
+    <div id="world" class="world">
+      <svg id="links" class="links" aria-hidden="true"></svg>
+    </div>
+  </main>
+
+  <div class="zoom">
+    <button id="zoom-out" title="Zoom out (−)">−</button>
+    <button id="zoom-level" title="Reset zoom (0)">100%</button>
+    <button id="zoom-in" title="Zoom in (+)">+</button>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+  <input id="import" type="file" accept="application/json" hidden>
+  <input id="image-picker" type="file" accept="image/*" hidden>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

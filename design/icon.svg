@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a2a42"/>
+      <stop offset="1" stop-color="#12121a"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#bg)"/>
+  <rect x="4.5" y="4.5" width="119" height="119" rx="27.5" fill="none" stroke="#ffffff" stroke-opacity=".08"/>
+  <!-- string between cards -->
+  <path d="M34 92 C 50 110, 84 108, 96 84" fill="none" stroke="#ffc857" stroke-width="3" stroke-linecap="round" stroke-opacity=".55"/>
+  <!-- back card -->
+  <g filter="url(#shadow)" transform="rotate(-12 44 52)">
+    <rect x="20" y="30" width="48" height="44" rx="8" fill="#4ecdc4"/>
+  </g>
+  <!-- middle card -->
+  <g filter="url(#shadow)" transform="rotate(10 86 62)">
+    <rect x="62" y="40" width="46" height="44" rx="8" fill="#f472b6"/>
+  </g>
+  <!-- front card -->
+  <g filter="url(#shadow)">
+    <rect x="34" y="46" width="58" height="52" rx="9" fill="#1e1e2c"/>
+    <path d="M43 46 h40 a9 9 0 0 1 9 9 v0 h-58 v0 a9 9 0 0 1 9 -9 z" fill="#ffc857"/>
+    <rect x="34" y="46" width="58" height="52" rx="9" fill="none" stroke="#ffc857" stroke-width="0"/>
+    <rect x="42" y="64" width="34" height="5" rx="2.5" fill="#ebebf5"/>
+    <rect x="42" y="75" width="42" height="5" rx="2.5" fill="#8c8ca5"/>
+    <rect x="42" y="86" width="24" height="5" rx="2.5" fill="#8c8ca5"/>
+  </g>
+</svg>

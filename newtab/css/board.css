@@ -1,0 +1,79 @@
+.viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  background-color: var(--bg);
+  background-position: var(--px, 0) var(--py, 0);
+  background-size: var(--grid, 28px) var(--grid, 28px);
+}
+.viewport.panning { cursor: grabbing; }
+.viewport.glide { transition: background-position .45s var(--ease), background-size .45s var(--ease); }
+
+.viewport[data-bg="dots"] { background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); }
+.viewport[data-bg="grid"] {
+  background-image:
+    linear-gradient(var(--dot) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dot) 1px, transparent 1px);
+}
+.viewport[data-bg="plain"] { background-image: none; }
+.viewport[data-bg="wallpaper"] {
+  background-image: linear-gradient(rgba(10, 10, 16, .35), rgba(10, 10, 16, .35)), var(--wallpaper);
+  background-size: cover;
+  background-position: center;
+}
+
+.world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+.world.glide { transition: transform .45s var(--ease); }
+
+/* ---------- connections ---------- */
+.links {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+.link-line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: .7;
+  transition: opacity .15s, stroke-width .15s;
+}
+.link-line.temp { stroke-dasharray: 6 7; opacity: .9; }
+.link-hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; cursor: pointer; }
+.link:hover .link-line { opacity: 1; stroke-width: 3.5; }
+
+.viewport.connecting, .viewport.connecting .card, .viewport.connecting .card * { cursor: crosshair !important; }
+
+/* ---------- zoom control ---------- */
+.zoom {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 50;
+  display: flex;
+  border: 1px solid var(--panel-2);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.zoom button {
+  min-width: 34px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+}
+.zoom button:hover { background: var(--panel-2); color: var(--text); }
+#zoom-level { min-width: 52px; font-variant-numeric: tabular-nums; }
