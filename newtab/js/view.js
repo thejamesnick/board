@@ -6,6 +6,7 @@ import { store, board, save } from './state.js';
 export const viewport = $('#viewport');
 export const world = $('#world');
 export const linksSvg = $('#links');
+export const screenLayer = $('#screen-layer'); // cards kept on screen, unaffected by pan/zoom
 
 export const MIN_ZOOM = 0.25;
 export const MAX_ZOOM = 2;
@@ -68,14 +69,15 @@ export function glide() {
 // move (and zoom out if needed) so every card is on screen
 export function centerView() {
   const b = board();
-  if (!b.cards.length) {
+  const cards = b.cards.filter(c => !c.onScreen);
+  if (!cards.length) {
     b.pan = { x: 0, y: 0 };
     b.zoom = 1;
   } else {
-    const minX = Math.min(...b.cards.map(c => c.x));
-    const minY = Math.min(...b.cards.map(c => c.y));
-    const maxX = Math.max(...b.cards.map(c => c.x + c.w));
-    const maxY = Math.max(...b.cards.map(c => c.y + c.h));
+    const minX = Math.min(...cards.map(c => c.x));
+    const minY = Math.min(...cards.map(c => c.y));
+    const maxX = Math.max(...cards.map(c => c.x + c.w));
+    const maxY = Math.max(...cards.map(c => c.y + c.h));
     const top = 110, margin = 60;
     const fit = Math.min((innerWidth - margin * 2) / (maxX - minX), (innerHeight - top - margin) / (maxY - minY));
     b.zoom = clampZoom(Math.min(1, fit));

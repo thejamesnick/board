@@ -17,9 +17,28 @@ export const PRODUCT_HUNT_BADGE = {
 
 const base = () => ({ id: uid(), z: 1, pinned: false, remindAt: null, title: '' });
 
-function badgeCard(x, y) {
+// the badge sits fixed in the bottom-right corner of the screen
+function badgeCard() {
   const [w, h] = embedSize(PRODUCT_HUNT_BADGE);
-  return { ...base(), type: 'embed', ...PRODUCT_HUNT_BADGE, color: '#ff6b6b', x: Math.round(x - w / 2), y: Math.round(y), w, h };
+  return {
+    ...base(), type: 'embed', ...PRODUCT_HUNT_BADGE, color: '#ff6b6b', onScreen: true,
+    x: innerWidth - w - 16, y: innerHeight - h - 16, w, h,
+  };
+}
+
+// one-time move of an existing badge card onto the screen corner
+export function moveBadgeToScreen() {
+  const s = store.state;
+  if (s.settings.badgeOnScreen) return false;
+  s.settings.badgeOnScreen = true;
+  for (const b of s.boards) {
+    for (const c of b.cards) {
+      if (c.img === PRODUCT_HUNT_BADGE.img && !c.onScreen) {
+        Object.assign(c, { onScreen: true, x: innerWidth - c.w - 16, y: innerHeight - c.h - 16 });
+      }
+    }
+  }
+  return true;
 }
 
 // Adds the welcome cards around `at` (board coordinates).
@@ -54,7 +73,7 @@ export function seedWelcome(at, { withBadge = false } = {}) {
   };
   b.cards.push(note, checklist, link);
   b.links.push({ id: uid(), a: note.id, b: checklist.id });
-  if (withBadge && !b.cards.some(c => c.img === PRODUCT_HUNT_BADGE.img)) b.cards.push(badgeCard(x + 180, y + 150));
+  if (withBadge && !b.cards.some(c => c.img === PRODUCT_HUNT_BADGE.img)) b.cards.push(badgeCard());
   return [note, checklist, link];
 }
 
@@ -64,6 +83,6 @@ export function seedBadgeOnce(at) {
   if (s.settings.seededBadge) return false;
   s.settings.seededBadge = true;
   const b = board();
-  if (!b.cards.some(c => c.img === PRODUCT_HUNT_BADGE.img)) b.cards.push(badgeCard(at.x, at.y + 140));
+  if (!b.cards.some(c => c.img === PRODUCT_HUNT_BADGE.img)) b.cards.push(badgeCard());
   return true;
 }

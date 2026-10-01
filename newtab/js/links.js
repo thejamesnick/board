@@ -25,7 +25,7 @@ export function drawLinks() {
   for (const link of b.links) {
     const from = b.cards.find(c => c.id === link.a);
     const to = b.cards.find(c => c.id === link.b);
-    if (!from || !to) continue;
+    if (!from || !to || from.onScreen || to.onScreen) continue;
     const d = curve(center(from), center(to));
     const g = svgEl('g', { class: 'link' });
     g.append(

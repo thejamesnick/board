@@ -15,6 +15,7 @@ import {
   copySelected, pasteCards, startMarquee,
 } from './selection.js';
 
+const SCROLL_SPEED = 0.45; // how far the board moves per scroll step
 const isEmptySpace = t => t === viewport || t === world || t === linksSvg;
 const isImageUrl = text => /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg|avif)(\?\S*)?$/i.test(text);
 
@@ -70,8 +71,8 @@ function initPanning() {
     if (!zooming && e.target.closest('textarea, .check-list')) return; // let card contents scroll
     e.preventDefault();
     // clamp so one mouse-wheel notch is a gentle step, while trackpad pinches stay smooth
-    if (zooming) zoomAt(e.clientX, e.clientY, Math.exp(-Math.max(-25, Math.min(25, e.deltaY)) * 0.01));
-    else panBy(-e.deltaX, -e.deltaY);
+    if (zooming) zoomAt(e.clientX, e.clientY, Math.exp(-Math.max(-12, Math.min(12, e.deltaY)) * 0.01));
+    else panBy(-e.deltaX * SCROLL_SPEED, -e.deltaY * SCROLL_SPEED);
   }, { passive: false });
 
   $('#zoom-in').addEventListener('click', () => zoomBy(1.2));

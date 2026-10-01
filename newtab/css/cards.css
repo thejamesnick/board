@@ -8,7 +8,7 @@
   min-height: 100px;
   border-radius: var(--radius);
   background: var(--panel);
-  border-top: 4px solid var(--c);
+  border-top: 2px solid var(--c);
   box-shadow: var(--shadow);
   resize: both;
   overflow: hidden;
@@ -21,7 +21,7 @@
 .card.flash { animation: flash 1.2s ease-out; }
 @keyframes flash { 0%, 40% { box-shadow: 0 0 0 4px var(--c), var(--shadow); } }
 .card.dim { opacity: .18; filter: grayscale(.7); }
-.card.connect-source { outline: 2px dashed var(--c); outline-offset: 4px; }
+.card.connect-source { outline: 1px dashed var(--c); outline-offset: 4px; }
 
 .card-bar {
   display: flex;
@@ -212,7 +212,7 @@
 @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
 /* ---------- selection & snapping ---------- */
-.card.selected { outline: 2px solid var(--accent); outline-offset: 3px; }
+.card.selected { outline: 1px solid var(--accent); outline-offset: 3px; }
 .card.type-embed.selected { outline-offset: -2px; }
 .guides { position: absolute; left: 0; top: 0; z-index: 100000; pointer-events: none; }
 .guide { position: absolute; background: #f472b6; }

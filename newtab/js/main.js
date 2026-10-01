@@ -12,7 +12,7 @@ import { initHistory } from './history.js';
 import { syncAlarms } from './reminders.js';
 import { gcImages } from './images.js';
 import { dailySnapshot } from './snapshots.js';
-import { seedWelcome, seedBadgeOnce } from './welcome.js';
+import { seedWelcome, seedBadgeOnce, moveBadgeToScreen } from './welcome.js';
 
 async function boot() {
   const saved = await readKey(STATE_KEY);
@@ -23,10 +23,12 @@ async function boot() {
   // writeNow (not save) so a newer synced copy from another computer still wins.
   if (!saved) {
     seedWelcome(viewCenter(), { withBadge: true });
-    store.state.settings.seededBadge = true;
+    Object.assign(store.state.settings, { seededBadge: true, badgeOnScreen: true });
     writeNow();
-  } else if (seedBadgeOnce(viewCenter())) {
-    writeNow();
+  } else {
+    const seeded = seedBadgeOnce(viewCenter());
+    const moved = moveBadgeToScreen();
+    if (seeded || moved) writeNow();
   }
 
   renderBoard();

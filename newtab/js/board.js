@@ -4,13 +4,13 @@ import { store, board, findCard, save, saveImages, COLORS } from './state.js';
 import { h, uid } from './dom.js';
 import { icon } from './icons.js';
 import { toast } from './ui.js';
-import { world, linksSvg, applyView, viewCenter, glide } from './view.js';
+import { world, linksSvg, screenLayer, applyView, viewCenter, glide, toWorld } from './view.js';
 import { CARD_TYPES } from './cards/index.js';
 import { openReminder, reminderChip } from './reminders.js';
 import { drawLinks, startConnect, finishConnect, isConnecting, cancelConnect } from './links.js';
 import { applySearchDim } from './search.js';
 import { compressImage } from './images.js';
-import { selected, selectedCards, setSelection, toggleSelected, paintSelection } from './selection.js';
+import { selected, selectedCards, toggleSelected, clearSelection, paintSelection, setActiveCard } from './selection.js';
 import { snapPosition, showGuides, hideGuides } from './snap.js';
 import { undo } from './history.js';
 
@@ -41,6 +41,7 @@ export function renderBoard() {
   resizeObserver.disconnect();
   cardEls.clear();
   world.replaceChildren(linksSvg);
+  screenLayer.replaceChildren();
   const b = board();
   topZ = Math.max(1, ...b.cards.map(c => c.z || 1));
   b.cards.forEach(card => mountCard(card));
@@ -60,7 +61,7 @@ export function mountCard(card, fresh = false) {
     resizeObserver.unobserve(old);
     old.replaceWith(el);
   } else {
-    world.appendChild(el);
+    (card.onScreen ? screenLayer : world).appendChild(el);
   }
   cardEls.set(card.id, el);
   resizeObserver.observe(el);
@@ -73,7 +74,8 @@ function tool(name, title, onclick, { on = false, cls = '' } = {}) {
 
 function buildCard(card) {
   const type = CARD_TYPES[card.type] || CARD_TYPES.note;
-  const cls = `card type-${card.type}${card.pinned ? ' pinned' : ''}${selected.has(card.id) ? ' selected' : ''}`;
+  if (card.onScreen) clampToScreen(card);
+  const cls = `card type-${card.type}${card.pinned ? ' pinned' : ''}${card.onScreen ? ' on-screen' : ''}${selected.has(card.id) ? ' selected' : ''}`;
   const el = h('article', { class: cls, 'data-id': card.id });
   Object.assign(el.style, {
     left: card.x + 'px',
@@ -102,6 +104,8 @@ function buildCard(card) {
     h('div', { class: 'tools' },
       tool('link', 'Connect to another card', () => startConnect(card)),
       tool('bell', 'Reminder', e => openReminder(card, e.currentTarget), { on: !!card.remindAt }),
+      tool('screen', card.onScreen ? 'Put back on the board' : 'Keep on screen (stays put when you pan or zoom)',
+        () => toggleOnScreen(card), { on: !!card.onScreen }),
       tool('pin', card.pinned ? 'Unpin' : 'Pin in place', () => {
         card.pinned = !card.pinned;
         mountCard(card);
@@ -144,7 +148,9 @@ function buildCard(card) {
       return;
     }
     bringToFront(el, card);
-    if (!selected.has(card.id)) setSelection([card.id]);
+    setActiveCard(card.id);
+    // clicking a card outside the current selection drops the selection
+    if (selected.size && !selected.has(card.id)) clearSelection();
   }, true);
 
   enableDrag(bar, el, card);
@@ -152,6 +158,43 @@ function buildCard(card) {
 }
 
 // the click that follows the connecting pointerdown shouldn't also press whatever was under it
+// ---------- keep on screen ----------
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(v, hi));
+
+// keep screen cards visible when the window is smaller than when they were placed
+function clampToScreen(card) {
+  card.x = Math.round(clamp(card.x, 8, innerWidth - card.w - 8));
+  card.y = Math.round(clamp(card.y, 8, innerHeight - card.h - 8));
+}
+
+// switch between board coordinates and screen pixels so the card doesn't jump
+function toggleOnScreen(card) {
+  const b = board();
+  if (card.onScreen) {
+    const p = toWorld(card.x, card.y);
+    card.x = Math.round(p.x);
+    card.y = Math.round(p.y);
+    card.onScreen = false;
+  } else {
+    card.x = Math.round(b.pan.x + card.x * b.zoom);
+    card.y = Math.round(b.pan.y + card.y * b.zoom);
+    card.onScreen = true;
+    selected.delete(card.id);
+  }
+  const old = cardEls.get(card.id);
+  resizeObserver.unobserve(old);
+  old.remove();
+  cardEls.delete(card.id);
+  mountCard(card);
+  drawLinks();
+  save();
+}
+
+window.addEventListener('resize', () => {
+  for (const card of board().cards) if (card.onScreen) mountCard(card);
+});
+
 function swallowNextClick() {
   const swallow = e => { e.stopPropagation(); e.preventDefault(); };
   window.addEventListener('click', swallow, { capture: true, once: true });
@@ -172,12 +215,12 @@ function enableDrag(bar, el, card) {
     e.preventDefault();
     bar.setPointerCapture(e.pointerId);
     const b = board();
-    const zoom = b.zoom;
-    const group = selected.has(card.id) && selected.size > 1
-      ? selectedCards().filter(c => !c.pinned)
+    const zoom = card.onScreen ? 1 : b.zoom; // screen cards move in screen pixels
+    const group = !card.onScreen && selected.has(card.id) && selected.size > 1
+      ? selectedCards().filter(c => !c.pinned && !c.onScreen)
       : [card];
     const moving = new Set(group.map(c => c.id));
-    const others = b.cards.filter(c => !moving.has(c.id));
+    const others = b.cards.filter(c => !moving.has(c.id) && !!c.onScreen === !!card.onScreen);
     const origin = new Map(group.map(c => [c.id, { x: c.x, y: c.y }]));
     const startX = e.clientX, startY = e.clientY;
     const snapOn = store.state.settings.snap !== false;

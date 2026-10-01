@@ -9,6 +9,8 @@ import { cardEls, mountCard, deleteCards, nextZ } from './board.js';
 import { drawLinks } from './links.js';
 
 export const selected = new Set();
+let activeId = null; // last card clicked; ⌘C/⌘D use it when nothing is selected
+export const setActiveCard = id => { activeId = id; };
 const CLIP_MARK = 'board-cards:';
 
 export function paintSelection() {
@@ -36,7 +38,13 @@ export function clearSelection() {
 
 export const selectedCards = () => board().cards.filter(c => selected.has(c.id));
 
-export const selectAll = () => setSelection(board().cards.map(c => c.id));
+const targetCards = () => {
+  if (selected.size) return selectedCards();
+  const active = board().cards.find(c => c.id === activeId);
+  return active ? [active] : [];
+};
+
+export const selectAll = () => setSelection(board().cards.filter(c => !c.onScreen).map(c => c.id));
 
 export function deleteSelected() {
   const cards = selectedCards();
@@ -57,6 +65,7 @@ function cloneGroup(cards, links, dx, dy) {
     y: Math.round(c.y + dy),
     z: nextZ(),
     remindAt: null,
+    onScreen: false,
     items: c.items?.map(i => ({ ...i, id: uid() })),
   }));
   const newLinks = links
@@ -77,7 +86,7 @@ function place(copies, newLinks) {
 }
 
 export function duplicateSelected() {
-  const cards = selectedCards();
+  const cards = targetCards();
   if (!cards.length) return toast('Click a card first');
   const { copies, newLinks } = cloneGroup(cards, board().links, 28, 28);
   place(copies, newLinks);
@@ -85,7 +94,7 @@ export function duplicateSelected() {
 
 // 'copy' event handler; returns true if it copied cards
 export function copySelected(e) {
-  const cards = selectedCards();
+  const cards = targetCards();
   if (!cards.length) return false;
   const ids = new Set(cards.map(c => c.id));
   const links = board().links.filter(l => ids.has(l.a) && ids.has(l.b));
@@ -128,7 +137,7 @@ export function startMarquee(e) {
     Object.assign(box.style, { left: x1 + 'px', top: y1 + 'px', width: x2 - x1 + 'px', height: y2 - y1 + 'px' });
     const a = toWorld(x1, y1), b = toWorld(x2, y2);
     const hit = board().cards
-      .filter(c => c.x < b.x && c.x + c.w > a.x && c.y < b.y && c.y + c.h > a.y)
+      .filter(c => !c.onScreen && c.x < b.x && c.x + c.w > a.x && c.y < b.y && c.y + c.h > a.y)
       .map(c => c.id);
     setSelection([...base, ...hit]);
   };
