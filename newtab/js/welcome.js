@@ -49,7 +49,7 @@ export function seedWelcome(at, { withBadge = false } = {}) {
     ...base(), type: 'note', color: '#ffc857',
     title: 'Welcome to your Board 👋',
     body: 'This is your own world on every new tab.\n\nEverything saves by itself. Delete these cards whenever you like — or keep them as a cheat sheet.',
-    x: x - 340, y: y - 170, w: 290, h: 200,
+    x: x - 340, y: y - 170, w: 290, h: 224,
   };
   const items = [
     'Double-click empty space to add a card',
@@ -64,12 +64,12 @@ export function seedWelcome(at, { withBadge = false } = {}) {
     ...base(), type: 'checklist', color: '#4ecdc4',
     title: 'Try these',
     items: items.map(text => ({ id: uid(), text, done: false })),
-    x: x + 20, y: y - 190, w: 320, h: 300,
+    x: x + 20, y: y - 190, w: 370, h: 350,
   };
   const link = {
     ...base(), type: 'link', color: '#7c83fd',
     title: 'Board on GitHub', url: 'https://github.com/thejamesnick/board',
-    x: x - 340, y: y + 60, w: 290, h: 124,
+    x: x - 340, y: y + 84, w: 290, h: 124,
   };
   b.cards.push(note, checklist, link);
   b.links.push({ id: uid(), a: note.id, b: checklist.id });

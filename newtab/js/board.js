@@ -339,12 +339,14 @@ export function focusCard(id) {
   if (!found) return;
   if (found.board.id !== store.state.activeBoard) switchBoard(found.board.id);
   const b = board(), c = found.card;
-  if (b.zoom < 0.6) b.zoom = 1;
-  b.pan.x = Math.round(innerWidth / 2 - (c.x + c.w / 2) * b.zoom);
-  b.pan.y = Math.round(innerHeight / 2 + 40 - (c.y + c.h / 2) * b.zoom);
-  glide();
-  applyView();
-  save();
+  if (!c.onScreen) { // screen cards are already in view
+    if (b.zoom < 0.6) b.zoom = 1;
+    b.pan.x = Math.round(innerWidth / 2 - (c.x + c.w / 2) * b.zoom);
+    b.pan.y = Math.round(innerHeight / 2 + 40 - (c.y + c.h / 2) * b.zoom);
+    glide();
+    applyView();
+    save();
+  }
   const el = cardEls.get(id);
   bringToFront(el, c);
   el.classList.remove('flash');

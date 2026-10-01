@@ -58,16 +58,19 @@ export function deleteSelected() {
 // fresh copies of `cards` (and the links between them), moved by (dx, dy)
 function cloneGroup(cards, links, dx, dy) {
   const ids = new Map(cards.map(c => [c.id, uid()]));
-  const copies = cards.map(c => ({
-    ...structuredClone(c),
-    id: ids.get(c.id),
-    x: Math.round(c.x + dx),
-    y: Math.round(c.y + dy),
-    z: nextZ(),
-    remindAt: null,
-    onScreen: false,
-    items: c.items?.map(i => ({ ...i, id: uid() })),
-  }));
+  const copies = cards.map(c => {
+    const p = c.onScreen ? toWorld(c.x, c.y) : c; // copies always land on the board
+    return {
+      ...structuredClone(c),
+      id: ids.get(c.id),
+      x: Math.round(p.x + dx),
+      y: Math.round(p.y + dy),
+      z: nextZ(),
+      remindAt: null,
+      onScreen: false,
+      items: c.items?.map(i => ({ ...i, id: uid() })),
+    };
+  });
   const newLinks = links
     .filter(l => ids.has(l.a) && ids.has(l.b))
     .map(l => ({ id: uid(), a: ids.get(l.a), b: ids.get(l.b) }));
