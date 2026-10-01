@@ -210,3 +210,9 @@
 .embed-edit .btn { align-self: flex-end; }
 .shake { animation: shake .35s; }
 @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+/* ---------- selection & snapping ---------- */
+.card.selected { outline: 2px solid var(--accent); outline-offset: 3px; }
+.card.type-embed.selected { outline-offset: -2px; }
+.guides { position: absolute; left: 0; top: 0; z-index: 100000; pointer-events: none; }
+.guide { position: absolute; background: #f472b6; }

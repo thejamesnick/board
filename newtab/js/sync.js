@@ -6,6 +6,8 @@
 import { store, hasChrome, migrate, onSave, writeNow, save, hasPendingSave, STATE_KEY, IMAGES_KEY, readKey } from './state.js';
 import { isTyping } from './dom.js';
 import { renderBoard } from './board.js';
+import { resetHistory } from './history.js';
+import { snapshotOnce } from './snapshots.js';
 
 const CHUNK = 2000;
 const META = 'sync-meta';
@@ -64,6 +66,7 @@ function adopt(boards, updatedAt) {
   store.state.activeBoard = next.activeBoard;
   store.state.updatedAt = updatedAt;
   writeNow();
+  resetHistory(); // undo shouldn't roll back someone else's changes
   renderBoard();
 }
 
@@ -77,6 +80,7 @@ export async function initSync() {
   if (syncOn()) {
     const remote = await pullSync();
     if (remote?.boards?.length && remote.updatedAt > store.state.updatedAt) {
+      if (store.state.updatedAt) await snapshotOnce('before sync');
       adopt(remote.boards, remote.updatedAt);
       status = { kind: 'ok', at: Date.now() };
     } else {
@@ -98,6 +102,7 @@ export async function initSync() {
       if (changes[META].newValue.updatedAt > store.state.updatedAt && !busy()) {
         const remote = await pullSync();
         if (remote?.boards?.length && remote.updatedAt > store.state.updatedAt) {
+          await snapshotOnce('before sync');
           adopt(remote.boards, remote.updatedAt);
           status = { kind: 'ok', at: Date.now() };
         }

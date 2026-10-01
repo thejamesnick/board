@@ -5,11 +5,15 @@ import { $, h, uid } from './dom.js';
 import { store, board, save, saveImages, migrate, newBoard } from './state.js';
 import { icon } from './icons.js';
 import { openMenu, toast } from './ui.js';
-import { applyView, toWorld } from './view.js';
+import { applyView, toWorld, viewCenter } from './view.js';
 import { renderBoard, switchBoard, addCard, addImageCard } from './board.js';
 import { CARD_TYPES } from './cards/index.js';
 import { compressImage, pickImage } from './images.js';
 import { toggleSync, syncNote, canSync } from './sync.js';
+import { listSnapshots, takeSnapshot, restoreSnapshot, countCards } from './snapshots.js';
+import { seedWelcome } from './welcome.js';
+import { mountCard } from './board.js';
+import { drawLinks } from './links.js';
 
 // ---------- add menu ----------
 
@@ -59,10 +63,11 @@ function renameBoard() {
   save();
 }
 
-function deleteBoard() {
+async function deleteBoard() {
   const b = board();
   const n = b.cards.length;
-  if (!confirm(`Delete “${b.name}”${n ? ` and its ${n} card${n === 1 ? '' : 's'}` : ''}? This can't be undone.`)) return;
+  if (!confirm(`Delete “${b.name}”${n ? ` and its ${n} card${n === 1 ? '' : 's'}` : ''}? (You can undo with ⌘Z.)`)) return;
+  await takeSnapshot('before deleting a board');
   store.state.boards = store.state.boards.filter(x => x !== b);
   store.state.activeBoard = store.state.boards[0].id;
   renderBoard();
@@ -85,8 +90,7 @@ async function setWallpaper(file) {
   try {
     const { url } = await compressImage(file, 2560);
     const b = board();
-    if (b.bgImage) delete store.images[b.bgImage];
-    b.bgImage = uid();
+    b.bgImage = uid(); // the old image is cleaned up later, so undo can still bring it back
     store.images[b.bgImage] = url;
     b.bg = 'wallpaper';
     saveImages();
@@ -115,6 +119,7 @@ async function importBackup(file) {
     const next = migrate(raw);
     const count = next.boards.reduce((n, b) => n + b.cards.length, 0);
     if (!confirm(`Replace everything with this backup (${next.boards.length} board${next.boards.length === 1 ? '' : 's'}, ${count} cards)?`)) return;
+    await takeSnapshot('before loading a backup');
     store.state = { ...next, settings: store.state.settings };
     store.images = { ...store.images, ...(data.images || {}) };
     saveImages();
@@ -140,10 +145,42 @@ function mainMenu(anchor) {
     canSync() ? { label: 'Sync with my Chrome account', checked: store.state.settings.sync, action: toggleSync } : null,
     { note: syncNote() },
     '-',
+    { label: 'Snap cards into line', checked: store.state.settings.snap !== false, action: toggleSnap },
+    { label: 'Add welcome tips', action: addTips },
+    '-',
     { label: 'Save backup', action: exportBackup },
     { label: 'Load backup…', action: () => $('#import').click() },
+    { label: 'Restore a snapshot…', action: () => snapshotMenu(anchor) },
     '-',
-    { note: 'Double-click the board to add cards · drop or paste images & links · N note · C show all · / search · ⌘/Ctrl + scroll to zoom · 1–9 switch boards' },
+    { note: 'Double-click to add · Shift-drag to select · ⌘Z undo · ⌘D duplicate · ⌘C/⌘V copy cards · Delete removes · N note · C show all · / search · ⌘ + scroll zoom · Alt-drag skips snapping · 1–9 boards' },
+  ]);
+}
+
+function toggleSnap() {
+  store.state.settings.snap = store.state.settings.snap === false;
+  save();
+}
+
+function addTips() {
+  const cards = seedWelcome(viewCenter());
+  cards.forEach(c => mountCard(c, true));
+  drawLinks();
+  save();
+}
+
+async function snapshotMenu(anchor) {
+  const list = await listSnapshots();
+  const r = anchor.getBoundingClientRect();
+  openMenu({ x: r.right - 280, y: r.bottom }, [
+    { heading: 'Snapshots' },
+    ...list.map(snap => ({
+      label: `${new Date(snap.at).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })} · ${countCards(snap.state)} cards`,
+      hint: snap.reason === 'daily' ? null : '•',
+      action: () => {
+        if (confirm(`Restore the snapshot from ${new Date(snap.at).toLocaleString()} (${snap.reason})? You can undo with ⌘Z.`)) restoreSnapshot(snap);
+      },
+    })),
+    list.length ? { note: 'Taken daily and before big changes (• marks those).' } : { note: 'No snapshots yet. One is taken every day.' },
   ]);
 }
 

@@ -1,7 +1,7 @@
 // Image helpers: shrink big photos before storing, pick files, clean up unused images.
 
 import { $ } from './dom.js';
-import { store, saveImages } from './state.js';
+import { store, saveImages, readKey } from './state.js';
 
 const readAsDataURL = file => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -32,12 +32,15 @@ export function pickImage(onFile) {
   picker.click();
 }
 
-// drop images no card or wallpaper uses anymore
-export function gcImages() {
+// drop images that no card, wallpaper or snapshot uses anymore
+export async function gcImages() {
   const used = new Set();
-  for (const b of store.state.boards) {
-    if (b.bgImage) used.add(b.bgImage);
-    for (const c of b.cards) if (c.imageId) used.add(c.imageId);
+  const snapshots = (await readKey('board-snapshots')) || [];
+  for (const state of [store.state, ...snapshots.map(s => s.state)]) {
+    for (const b of state.boards || []) {
+      if (b.bgImage) used.add(b.bgImage);
+      for (const c of b.cards) if (c.imageId) used.add(c.imageId);
+    }
   }
   let removed = false;
   for (const id of Object.keys(store.images)) {

@@ -67,3 +67,13 @@
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 .toast-action { padding: 0; border: 0; background: none; color: var(--accent); font-weight: 600; }
+
+/* ---------- box select ---------- */
+.marquee {
+  position: fixed;
+  z-index: 90;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  pointer-events: none;
+}

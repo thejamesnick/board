@@ -9,6 +9,11 @@ import { closeFloating, isFloatingOpen } from './ui.js';
 import { openAddMenu } from './menus.js';
 import { normalizeUrl } from './cards/link.js';
 import { parseEmbed, embedSize } from './cards/embed.js';
+import { undo, redo } from './history.js';
+import {
+  selected, clearSelection, selectAll, deleteSelected, duplicateSelected,
+  copySelected, pasteCards, startMarquee,
+} from './selection.js';
 
 const isEmptySpace = t => t === viewport || t === world || t === linksSvg;
 const isImageUrl = text => /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg|avif)(\?\S*)?$/i.test(text);
@@ -31,6 +36,8 @@ function initPanning() {
     if (e.button !== 0 || !isEmptySpace(e.target)) return;
     if (isConnecting()) return cancelConnect();
     document.activeElement?.blur();
+    if (e.shiftKey) return startMarquee(e);
+    clearSelection();
     viewport.setPointerCapture(e.pointerId);
     viewport.classList.add('panning');
     const b = board();
@@ -79,11 +86,22 @@ function initKeyboard() {
       if (isFloatingOpen()) closeFloating();
       else if (isConnecting()) cancelConnect();
       else if (typing) e.target.blur();
+      else clearSelection();
       return;
     }
-    if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (typing) return; // fields keep their own undo, copy and paste
     const key = e.key.toLowerCase();
-    if (key === 'n') { e.preventDefault(); addCard('note'); }
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod) {
+      if (key === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+      else if (key === 'y') { e.preventDefault(); redo(); }
+      else if (key === 'd') { e.preventDefault(); duplicateSelected(); }
+      else if (key === 'a') { e.preventDefault(); selectAll(); }
+      return;
+    }
+    if (e.altKey) return;
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) { e.preventDefault(); deleteSelected(); }
+    else if (key === 'n') { e.preventDefault(); addCard('note'); }
     else if (key === 'c') centerView();
     else if (key === '0') setZoom(1);
     else if (key === '=' || key === '+') zoomBy(1.2);
@@ -97,8 +115,17 @@ function initKeyboard() {
 }
 
 function initPasteAndDrop() {
+  document.addEventListener('copy', e => {
+    if (isTyping(e.target) || String(getSelection())) return;
+    copySelected(e);
+  });
+
   document.addEventListener('paste', e => {
     if (isTyping(e.target)) return;
+    if (pasteCards(e.clipboardData.getData('text/plain'))) {
+      e.preventDefault();
+      return;
+    }
     const file = [...e.clipboardData.files].find(f => f.type.startsWith('image/'));
     if (file) {
       e.preventDefault();

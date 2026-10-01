@@ -12,11 +12,16 @@
 - **Card types** — notes, checklists, links (with site icons), images, countdowns, and embeds/badges (paste a Product Hunt badge or any image link)
 - **Connect cards** with lines, like a detective board
 - **Reminders** on any card — a desktop notification fires even with no tab open
-- **Pin** cards in place, recolor them, resize from the corner, delete with undo
+- **Undo / redo everything** (⌘Z / ⇧⌘Z) — typing, moving, deleting, colors, whole boards
+- **Select several cards** with Shift-click or Shift-drag, then move, duplicate (⌘D), copy/paste (⌘C/⌘V, even between boards) or delete them together
+- **Snapping** with alignment guides while dragging (hold Alt/Option to drag freely)
+- **Pin** cards in place, recolor them, resize from the corner
 - **Search** across all your cards from the top bar (Enter with nothing selected searches the web)
 - **Multiple boards** — switch with the board menu or keys **1–9**
 - **Backgrounds** — dots, grid, plain, or your own wallpaper
 - **Sync** text across computers through your Chrome account; backups to a file
+- **Automatic snapshots** daily and before big changes — restore any of them from the ⋯ menu
+- **Welcome cards** for first-time users that teach the gestures
 - **Drop or paste** images, links and text straight onto the board
 - A rolling serif clock, and a matching dark Chrome theme
 
@@ -35,12 +40,19 @@ Everything saves automatically to your browser. Nothing is sent anywhere except 
 | Key | Action |
 | --- | --- |
 | Double-click board | Add a card |
+| Shift-drag / Shift-click | Select several cards |
+| `⌘Z` / `⇧⌘Z` | Undo / redo |
+| `⌘D` | Duplicate selection |
+| `⌘C` / `⌘V` | Copy / paste cards |
+| `⌘A` | Select all |
+| `Delete` | Delete selection |
 | `N` | New note |
 | `C` | Show all cards |
 | `/` | Search |
 | `0` / `+` / `-` | Reset / zoom in / zoom out |
 | `1`–`9` | Switch boards |
-| `Esc` | Close menus, cancel connecting |
+| `Esc` | Close menus, cancel connecting, clear selection |
+| Alt + drag | Move without snapping |
 
 ## Project layout
 
@@ -55,6 +67,11 @@ newtab/                 the extension
     board.js            cards: build, drag, resize, add, delete
     cards/              one file per card type + index.js registry
     links.js            connections between cards
+    selection.js        select, duplicate, copy/paste, box select
+    history.js          undo / redo
+    snap.js             snapping + alignment guides
+    snapshots.js        automatic safety copies
+    welcome.js          first-run cards
     view.js             pan, zoom, background
     input.js            mouse, keyboard, paste, drop
     menus.js            board switcher, ⋯ menu, add menu, backups
@@ -69,6 +86,8 @@ design/                 icon source
 **Adding a card type:** create `newtab/js/cards/yourtype.js` exporting `{ label, size, defaults, build, text }` and register it in `cards/index.js`.
 
 No build step, no dependencies — plain HTML, CSS and ES modules.
+
+What's coming next: see [ROADMAP.md](ROADMAP.md).
 
 ## License
 

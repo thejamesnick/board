@@ -10,9 +10,13 @@ import { openReminder, reminderChip } from './reminders.js';
 import { drawLinks, startConnect, finishConnect, isConnecting, cancelConnect } from './links.js';
 import { applySearchDim } from './search.js';
 import { compressImage } from './images.js';
+import { selected, selectedCards, setSelection, toggleSelected, paintSelection } from './selection.js';
+import { snapPosition, showGuides, hideGuides } from './snap.js';
+import { undo } from './history.js';
 
 export const cardEls = new Map(); // card id -> element (current board only)
 let topZ = 1;
+export const nextZ = () => ++topZ;
 
 // remember sizes after the user drags the resize corner
 const resizeObserver = new ResizeObserver(entries => {
@@ -43,6 +47,7 @@ export function renderBoard() {
   applyView();
   drawLinks();
   applySearchDim();
+  paintSelection();
   document.dispatchEvent(new CustomEvent('board:render'));
 }
 
@@ -68,7 +73,8 @@ function tool(name, title, onclick, { on = false, cls = '' } = {}) {
 
 function buildCard(card) {
   const type = CARD_TYPES[card.type] || CARD_TYPES.note;
-  const el = h('article', { class: `card type-${card.type}${card.pinned ? ' pinned' : ''}`, 'data-id': card.id });
+  const cls = `card type-${card.type}${card.pinned ? ' pinned' : ''}${selected.has(card.id) ? ' selected' : ''}`;
+  const el = h('article', { class: cls, 'data-id': card.id });
   Object.assign(el.style, {
     left: card.x + 'px',
     top: card.y + 'px',
@@ -101,7 +107,7 @@ function buildCard(card) {
         mountCard(card);
         save();
       }, { on: card.pinned, cls: 'pin' }),
-      tool('x', 'Delete card', () => deleteCard(card), { cls: 'del' })));
+      tool('x', 'Delete card', () => deleteCards([card]), { cls: 'del' })));
 
   const ctx = { el, save, rerender: () => mountCard(card) };
   el.append(bar);
@@ -128,9 +134,17 @@ function buildCard(card) {
       e.stopPropagation();
       swallowNextClick();
       finishConnect(card);
-    } else {
-      bringToFront(el, card);
+      return;
     }
+    // Shift-click adds/removes from the selection (unless extending text selection in a field)
+    if (e.shiftKey && !(e.target.matches('input, textarea') && e.target === document.activeElement)) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSelected(card.id);
+      return;
+    }
+    bringToFront(el, card);
+    if (!selected.has(card.id)) setSelection([card.id]);
   }, true);
 
   enableDrag(bar, el, card);
@@ -151,24 +165,50 @@ function bringToFront(el, card) {
   save();
 }
 
+// Drags the card — and the rest of the selection with it — snapping to other cards.
 function enableDrag(bar, el, card) {
   bar.addEventListener('pointerdown', e => {
     if (e.button !== 0 || card.pinned || e.target.closest('button')) return;
     e.preventDefault();
     bar.setPointerCapture(e.pointerId);
-    el.classList.add('dragging');
-    const zoom = board().zoom;
-    const startX = e.clientX, startY = e.clientY, origX = card.x, origY = card.y;
+    const b = board();
+    const zoom = b.zoom;
+    const group = selected.has(card.id) && selected.size > 1
+      ? selectedCards().filter(c => !c.pinned)
+      : [card];
+    const moving = new Set(group.map(c => c.id));
+    const others = b.cards.filter(c => !moving.has(c.id));
+    const origin = new Map(group.map(c => [c.id, { x: c.x, y: c.y }]));
+    const startX = e.clientX, startY = e.clientY;
+    const snapOn = store.state.settings.snap !== false;
+    group.forEach(c => cardEls.get(c.id)?.classList.add('dragging'));
 
     const move = ev => {
-      card.x = Math.round(origX + (ev.clientX - startX) / zoom);
-      card.y = Math.round(origY + (ev.clientY - startY) / zoom);
-      el.style.left = card.x + 'px';
-      el.style.top = card.y + 'px';
+      const o = origin.get(card.id);
+      let x = o.x + (ev.clientX - startX) / zoom;
+      let y = o.y + (ev.clientY - startY) / zoom;
+      if (snapOn && !ev.altKey) {
+        const snapped = snapPosition({ x, y, w: card.w, h: card.h }, others, zoom);
+        x = snapped.x;
+        y = snapped.y;
+        showGuides(snapped.guides, zoom);
+      } else {
+        hideGuides();
+      }
+      const dx = Math.round(x - o.x), dy = Math.round(y - o.y);
+      for (const c of group) {
+        const start = origin.get(c.id);
+        c.x = start.x + dx;
+        c.y = start.y + dy;
+        const cel = cardEls.get(c.id);
+        cel.style.left = c.x + 'px';
+        cel.style.top = c.y + 'px';
+      }
       drawLinks();
     };
     const up = () => {
-      el.classList.remove('dragging');
+      hideGuides();
+      group.forEach(c => cardEls.get(c.id)?.classList.remove('dragging'));
       bar.removeEventListener('pointermove', move);
       bar.removeEventListener('pointerup', up);
       bar.removeEventListener('pointercancel', up);
@@ -223,41 +263,23 @@ export async function addImageCard(file, at) {
   }
 }
 
-export function deleteCard(card) {
+export function deleteCards(cards) {
+  if (!cards.length) return;
   const b = board();
-  const index = b.cards.indexOf(card);
-  const removedLinks = b.links.filter(l => l.a === card.id || l.b === card.id);
-  b.cards.splice(index, 1);
-  b.links = b.links.filter(l => !removedLinks.includes(l));
-  const el = cardEls.get(card.id);
-  resizeObserver.unobserve(el);
-  el.remove();
-  cardEls.delete(card.id);
+  const ids = new Set(cards.map(c => c.id));
+  b.cards = b.cards.filter(c => !ids.has(c.id));
+  b.links = b.links.filter(l => !ids.has(l.a) && !ids.has(l.b));
+  for (const id of ids) {
+    const el = cardEls.get(id);
+    resizeObserver.unobserve(el);
+    el.remove();
+    cardEls.delete(id);
+    selected.delete(id);
+  }
   drawLinks();
   save();
-
-  toast('Card deleted', {
-    label: 'Undo',
-    action: () => {
-      b.cards.splice(index, 0, card);
-      b.links.push(...removedLinks);
-      if (board() === b) {
-        mountCard(card, true);
-        drawLinks();
-      }
-      save();
-    },
-    onExpire: () => {
-      // free the image once undo is no longer possible
-      if (card.imageId && !findCardUsingImage(card.imageId)) {
-        delete store.images[card.imageId];
-        saveImages();
-      }
-    },
-  });
+  toast(cards.length === 1 ? 'Card deleted' : `${cards.length} cards deleted`, { label: 'Undo', action: undo });
 }
-
-const findCardUsingImage = id => store.state.boards.some(b => b.cards.some(c => c.imageId === id));
 
 // ---------- boards ----------
 
