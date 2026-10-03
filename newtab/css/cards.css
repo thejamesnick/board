@@ -7,15 +7,36 @@
   min-width: 180px;
   min-height: 100px;
   border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--c) 14%, var(--line));
   background: var(--panel);
-  border-top: 2px solid var(--c);
   box-shadow: var(--shadow);
   resize: both;
   overflow: hidden;
-  transition: box-shadow .15s, transform .15s, opacity .2s, filter .2s;
+  transition: box-shadow .15s, border-color .15s, transform .15s, opacity .2s, filter .2s;
 }
+/* a small lit tab hanging off the top edge, like a bookmark */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  width: 30px;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
+  background: var(--c);
+  pointer-events: none;
+}
+.card:hover { border-color: color-mix(in srgb, var(--c) 30%, var(--line)); }
 .card.pinned { resize: none; }
-.card.dragging { transform: rotate(-1.2deg) scale(1.02); box-shadow: 0 22px 50px rgba(0, 0, 0, .55); }
+.card.dragging {
+  transform: rotate(-1.2deg) scale(1.02);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 2px 4px rgba(5, 5, 12, .4), 0 28px 56px -10px rgba(5, 5, 12, .7);
+}
+
+/* the corner grip: two short diagonal strokes instead of the browser's default */
+.card::-webkit-resizer {
+  background: linear-gradient(135deg, transparent 0 52%, color-mix(in srgb, var(--muted) 55%, transparent) 52% 60%, transparent 60% 74%, color-mix(in srgb, var(--muted) 55%, transparent) 74% 82%, transparent 82%);
+}
 .card.fresh { animation: pop .22s ease-out; }
 @keyframes pop { from { transform: scale(.85); opacity: 0; } }
 .card.flash { animation: flash 1.2s ease-out; }
@@ -36,7 +57,8 @@
 
 .swatches { display: flex; gap: 5px; opacity: 0; transition: opacity .15s; }
 .card:hover .swatches { opacity: 1; }
-.swatch { width: 13px; height: 13px; padding: 0; border: 2px solid transparent; border-radius: 50%; }
+.swatch { width: 13px; height: 13px; padding: 0; border: 2px solid transparent; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .25); transition: transform .12s var(--ease); }
+.swatch:hover { transform: scale(1.2); }
 .swatch.on { border-color: var(--text); }
 
 .tools { display: flex; gap: 1px; }
@@ -64,8 +86,10 @@
   outline: none;
   background: transparent;
   color: var(--c);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 16px;
   font-weight: 700;
+  letter-spacing: 0;
 }
 .card-title::placeholder { color: var(--muted); font-weight: 600; }
 
@@ -90,6 +114,8 @@
 .card-body {
   flex: 1;
   padding: 6px 14px 14px;
+  color: color-mix(in srgb, var(--text) 90%, var(--panel));
+  line-height: 1.55;
   border: 0;
   outline: none;
   background: transparent;
@@ -99,14 +125,31 @@
 
 /* ---------- checklist ---------- */
 .check { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 6px 8px 8px; }
-.check-progress { height: 3px; margin: 0 6px 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
-.check-progress span { display: block; height: 100%; background: var(--c); transition: width .3s var(--ease); }
+.check-progress { height: 3px; margin: 2px 6px 8px; border-radius: 3px; background: color-mix(in srgb, var(--c) 12%, var(--panel-2)); overflow: hidden; }
+.check-progress span { display: block; height: 100%; border-radius: 3px; background: var(--c); transition: width .3s var(--ease); }
 .check-list { flex: 1; min-height: 0; margin: 0; padding: 0; list-style: none; overflow-y: auto; }
 .check-list li { display: flex; align-items: center; gap: 8px; padding: 2px 6px; border-radius: 6px; }
 .check-list li:hover { background: var(--panel-2); }
-.check-list input[type="checkbox"] { flex: none; width: 15px; height: 15px; margin: 0; accent-color: var(--c); cursor: pointer; }
+.check-list input[type="checkbox"] {
+  appearance: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 65%, transparent);
+  border-radius: 5px;
+  background: transparent center / 11px no-repeat;
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s;
+}
+.check-list input[type="checkbox"]:hover { border-color: var(--c); }
+.check-list input[type="checkbox"]:checked {
+  border-color: var(--c);
+  background-color: var(--c);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%2312121a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.3l2.4 2.4 4.6-5.2'/%3E%3C/svg%3E");
+}
 .check-text { flex: 1; min-width: 0; padding: 3px 0; border: 0; outline: none; background: transparent; }
-.check-list li.done .check-text { color: var(--muted); text-decoration: line-through; }
+.check-list li.done .check-text { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 50%, transparent); }
 .check-del { padding: 0; border: 0; background: none; color: var(--muted); opacity: 0; display: grid; }
 .check-list li:hover .check-del { opacity: 1; }
 .check-del:hover { color: var(--danger); }
@@ -133,21 +176,22 @@
 .link-input:focus { border-color: var(--c); border-style: solid; }
 .link-tile {
   position: relative;
+  border: 1px solid color-mix(in srgb, var(--c) 10%, var(--line));
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 6px 10px 10px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 11px;
   background: var(--panel-2);
   color: inherit;
   text-decoration: none;
   transition: background .15s;
 }
 .link-tile:hover { background: color-mix(in srgb, var(--c) 14%, var(--panel-2)); }
-.favicon { flex: none; width: 28px; height: 28px; border-radius: 6px; }
+.favicon { flex: none; width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .06); }
 .link-meta { display: flex; flex-direction: column; min-width: 0; }
-.link-host { font-weight: 600; }
+.link-host { font-weight: 600; letter-spacing: -.01em; }
 .link-path { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .link-editbtn {
   position: absolute;
@@ -180,19 +224,21 @@
   text-align: left;
 }
 .cd-row { display: flex; align-items: baseline; gap: 8px; }
-.cd-big { font: 64px/1 var(--serif); color: var(--c); font-variant-numeric: tabular-nums; }
+.cd-big { font: 72px/1 var(--serif); letter-spacing: -.02em; color: var(--c); font-variant-numeric: tabular-nums; }
 .cd-unit { font: italic 22px var(--serif); }
-.cd-sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.cd-sub { margin-top: 6px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 .card.cd-past .cd-big { color: var(--muted); }
 .cd-edit { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px 12px; }
 .cd-edit .btn { align-self: flex-start; }
 
 /* ---------- embed / badge ---------- */
-.card.type-embed { background: transparent; border-top-color: transparent; box-shadow: none; }
-.card.type-embed:hover { background: color-mix(in srgb, var(--panel) 70%, transparent); }
+.card.type-embed { background: transparent; border-color: transparent; box-shadow: none; }
+.card.type-embed::before { display: none; }
+.card.type-embed:hover { background: color-mix(in srgb, var(--panel) 70%, transparent); border-color: var(--line); }
 .card.type-embed:not(:has(.embed-edit)) .card-bar { position: absolute; inset: 0 0 auto; z-index: 1; opacity: 0; transition: opacity .15s; }
 .card.type-embed:hover .card-bar { opacity: 1; }
-.card.type-embed:has(.embed-edit) { background: var(--panel); border-top-color: var(--c); box-shadow: var(--shadow); }
+.card.type-embed:has(.embed-edit) { background: var(--panel); border-color: color-mix(in srgb, var(--c) 14%, var(--line)); box-shadow: var(--shadow); }
+.card.type-embed:has(.embed-edit)::before { display: block; }
 .embed { flex: 1; display: grid; place-items: center; padding: 28px 12px 12px; }
 .embed-img { display: block; max-width: 100%; max-height: 100%; }
 .embed-edit { display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 4px 12px 12px; }
@@ -204,7 +250,7 @@
   background: transparent;
   outline: none;
   resize: none;
-  font: 12px/1.4 ui-monospace, monospace;
+  font: 12px/1.4 var(--mono);
 }
 .embed-input:focus { border: 1px solid var(--c); }
 .embed-edit .btn { align-self: flex-end; }
@@ -215,4 +261,4 @@
 .card.selected { outline: 1px solid var(--accent); outline-offset: 3px; }
 .card.type-embed.selected { outline-offset: -2px; }
 .guides { position: absolute; left: 0; top: 0; z-index: 100000; pointer-events: none; }
-.guide { position: absolute; background: #f472b6; }
+.guide { position: absolute; background: var(--accent); opacity: .75; }
