@@ -142,7 +142,7 @@ export async function importBackup(file) {
 async function backupFromMenu() {
   if (store.state.settings.backupHold) return toast('Restore your backup or choose Start fresh first', { ms: 4000 });
   const ok = await backupNow({ interactive: true });
-  toast(ok ? 'Backed up to Downloads' : backupNote(), { ms: ok ? 2500 : 7000 });
+  toast(ok ? 'Backup saved' : backupNote(), { ms: ok ? 2500 : 7000 });
 }
 
 function mainMenu(anchor) {

@@ -20,7 +20,7 @@
 - **Multiple boards** — switch with the board menu or keys **1–9**
 - **Backgrounds** — dots, grid, plain, or your own wallpaper
 - **Sync** text across computers through your Chrome account; backups to a file
-- **Automatic backup file** — a copy of everything is saved to `Downloads/board-autobackup.json`, so removing the extension (which erases its storage) doesn't lose your boards. After a reinstall, use **Restore backup**. Turn off Chrome's "Ask where to save each file" so it can run on its own
+- **Automatic backup file** — a copy of everything is saved as `board-autobackup.json` in your Chrome downloads folder, so removing the extension (which erases its storage) doesn't lose your boards. After a reinstall, use **Restore backup**. Turn off Chrome's "Ask where to save each file" so it can run on its own
 - **Automatic snapshots** daily and before big changes — restore any of them from the ⋯ menu
 - **Welcome cards** for first-time users that teach the gestures
 - **Drop or paste** images, links and text straight onto the board

@@ -2,7 +2,7 @@
 // Chrome erases the extension's own storage when it's removed, so a copy outside the
 // browser is the only thing that can bring the boards back.
 //
-// Written to Downloads/board-autobackup.json (same name every time, so it's overwritten).
+// Written to your Chrome downloads folder as board-autobackup.json (same name every time, so it's overwritten).
 // On a fresh install the file is held back until you restore or choose "start fresh",
 // otherwise an empty board could overwrite the good backup.
 
@@ -74,9 +74,9 @@ export function backupNote() {
   if (meta.error === 'asking') return ASK_WHERE;
   if (meta.error === 'cancelled') return `Last backup was cancelled. If Chrome showed a Save dialog, turn off "Ask where to save each file" in chrome://settings/downloads, or press Save in it.`;
   if (meta.error) return `Last backup failed (${meta.error}).`;
-  if (!meta.at) return `Saved to Downloads/${BACKUP_FILE} automatically.`;
+  if (!meta.at) return `Saved to your downloads folder as ${BACKUP_FILE} automatically.`;
   const when = new Date(meta.at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-  return `Last saved ${when} to Downloads/${BACKUP_FILE}.`;
+  return `Last saved ${when} to your downloads folder as ${BACKUP_FILE}.`;
 }
 
 // lets the user point at the backup file; opens in Downloads where the file lives
