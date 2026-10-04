@@ -52,7 +52,8 @@ export async function backupNow({ interactive = false } = {}) {
     }
     URL.revokeObjectURL(url);
     if (item?.state === 'complete') meta = { at: Date.now() };
-    else meta = { at: meta.at, error: item?.state === 'asking' ? 'asking' : item?.error || 'did not finish' };
+    // no record at all means the download was dropped, which is what cancelling Chrome's Save dialog does
+    else meta = { at: meta.at, error: !item ? 'cancelled' : item.state === 'asking' ? 'asking' : item.error || item.state };
   } catch (err) {
     meta = { at: meta.at, error: err.message };
   }
@@ -71,6 +72,7 @@ export function backupNote() {
   if (!canBackupToDisk()) return 'Backups to Downloads work once this is loaded as an extension.';
   if (store.state.settings.backupHold) return 'Paused until you restore a backup or start fresh.';
   if (meta.error === 'asking') return ASK_WHERE;
+  if (meta.error === 'cancelled') return `Last backup was cancelled. If Chrome showed a Save dialog, turn off "Ask where to save each file" in chrome://settings/downloads, or press Save in it.`;
   if (meta.error) return `Last backup failed (${meta.error}).`;
   if (!meta.at) return `Saved to Downloads/${BACKUP_FILE} automatically.`;
   const when = new Date(meta.at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
