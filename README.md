@@ -20,12 +20,13 @@
 - **Multiple boards** — switch with the board menu or keys **1–9**
 - **Backgrounds** — dots, grid, plain, or your own wallpaper
 - **Sync** text across computers through your Chrome account; backups to a file
+- **Automatic backup file** — a copy of everything is saved to `Downloads/board-autobackup.json`, so removing the extension (which erases its storage) doesn't lose your boards. After a reinstall, use **Restore backup**. Turn off Chrome's "Ask where to save each file" so it can run on its own
 - **Automatic snapshots** daily and before big changes — restore any of them from the ⋯ menu
 - **Welcome cards** for first-time users that teach the gestures
 - **Drop or paste** images, links and text straight onto the board
 - A rolling serif clock, and a matching dark Chrome theme
 
-Everything saves automatically to your browser. Nothing is sent anywhere except Chrome sync (if you leave it on).
+Everything saves automatically to your browser. Nothing is sent anywhere except Chrome sync (if you leave it on). Note that Chrome only syncs extensions installed from the Web Store, not ones loaded unpacked.
 
 ## Install
 
@@ -77,6 +78,7 @@ newtab/                 the extension
     menus.js            board switcher, ⋯ menu, add menu, backups
     search.js           card search
     sync.js             cross-tab and Chrome account sync
+    autobackup.js       backup file in Downloads, restore banner
     reminders.js        reminder popover + alarms
     clock.js, ui.js, dom.js, icons.js, images.js
 theme/                  matching dark Chrome theme

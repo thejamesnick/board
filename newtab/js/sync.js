@@ -27,6 +27,8 @@ function schedulePush() {
 async function pushSync() {
   clearTimeout(pushTimer);
   pushTimer = null;
+  // an untouched fresh install must never overwrite boards that are still on their way down from the cloud
+  if (!store.state.updatedAt) return;
   const json = JSON.stringify({ boards: store.state.boards, updatedAt: store.state.updatedAt });
   const n = Math.ceil(json.length / CHUNK);
   const items = { [META]: { n, updatedAt: store.state.updatedAt } };

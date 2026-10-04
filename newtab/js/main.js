@@ -5,7 +5,8 @@ import { viewCenter } from './view.js';
 import { renderBoard, cardEls, focusCard } from './board.js';
 import { initClock } from './clock.js';
 import { initInput } from './input.js';
-import { initMenus } from './menus.js';
+import { initMenus, importBackup } from './menus.js';
+import { initAutoBackup } from './autobackup.js';
 import { initSearch } from './search.js';
 import { initSync } from './sync.js';
 import { initHistory } from './history.js';
@@ -38,6 +39,7 @@ async function boot() {
   initSearch();
   onWrite(syncAlarms);
   await initSync();
+  initAutoBackup({ fresh: !saved, restoreFile: importBackup });
   initHistory();
   syncAlarms();
   dailySnapshot().then(gcImages);

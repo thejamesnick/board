@@ -12,6 +12,7 @@ import { compressImage, pickImage } from './images.js';
 import { toggleSync, syncNote, canSync } from './sync.js';
 import { listSnapshots, takeSnapshot, restoreSnapshot, countCards } from './snapshots.js';
 import { seedWelcome } from './welcome.js';
+import { backupJson, backupNow, backupNote, canBackupToDisk, chooseBackupFile, releaseHold } from './autobackup.js';
 import { mountCard } from './board.js';
 import { drawLinks } from './links.js';
 
@@ -104,31 +105,44 @@ async function setWallpaper(file) {
 // ---------- backups ----------
 
 function exportBackup() {
-  const data = { app: 'board', version: 2, state: store.state, images: store.images };
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const blob = new Blob([backupJson()], { type: 'application/json' });
   const a = h('a', { href: URL.createObjectURL(blob), download: `board-backup-${new Date().toISOString().slice(0, 10)}.json` });
   a.click();
   URL.revokeObjectURL(a.href);
 }
 
-async function importBackup(file) {
+export async function importBackup(file) {
   try {
-    const data = JSON.parse(await file.text());
+    let data;
+    try {
+      data = JSON.parse(await file.text());
+    } catch {
+      toast(`${file.name} isn't a Board backup (it isn't a JSON file)`, { ms: 5000 });
+      return false;
+    }
     const raw = data.state || data; // v2 backups wrap state + images; v1 was just { pan, cards }
     if (!raw.boards && !raw.cards) throw new Error('not a backup');
     const next = migrate(raw);
     const count = next.boards.reduce((n, b) => n + b.cards.length, 0);
-    if (!confirm(`Replace everything with this backup (${next.boards.length} board${next.boards.length === 1 ? '' : 's'}, ${count} cards)?`)) return;
+    if (!confirm(`Replace everything with this backup (${next.boards.length} board${next.boards.length === 1 ? '' : 's'}, ${count} cards)?`)) return false;
     await takeSnapshot('before loading a backup');
     store.state = { ...next, settings: store.state.settings };
     store.images = { ...store.images, ...(data.images || {}) };
     saveImages();
     renderBoard();
-    save();
+    releaseHold(); // a restored board is safe to back up again
     toast('Backup loaded');
+    return true;
   } catch {
-    toast("That file doesn't look like a Board backup");
+    toast(`${file.name} doesn't look like a Board backup`, { ms: 5000 });
+    return false;
   }
+}
+
+async function backupFromMenu() {
+  if (store.state.settings.backupHold) return toast('Restore your backup or choose Start fresh first', { ms: 4000 });
+  const ok = await backupNow({ interactive: true });
+  toast(ok ? 'Backed up to Downloads' : backupNote(), { ms: ok ? 2500 : 7000 });
 }
 
 function mainMenu(anchor) {
@@ -148,8 +162,10 @@ function mainMenu(anchor) {
     { label: 'Snap cards into line', checked: store.state.settings.snap !== false, action: toggleSnap },
     { label: 'Add welcome tips', action: addTips },
     '-',
+    canBackupToDisk() ? { label: 'Back up now', action: backupFromMenu } : null,
+    { note: backupNote() },
     { label: 'Save backup', action: exportBackup },
-    { label: 'Load backup…', action: () => $('#import').click() },
+    { label: 'Load backup…', action: async () => { const file = await chooseBackupFile(); if (file) importBackup(file); } },
     { label: 'Restore a snapshot…', action: () => snapshotMenu(anchor) },
     '-',
     { note: 'Double-click to add · Shift-drag to select · ⌘Z undo · ⌘D duplicate · ⌘C/⌘V copy cards · Delete removes · N note · C show all · / search · ⌘ + scroll zoom · Alt-drag skips snapping · 1–9 boards' },

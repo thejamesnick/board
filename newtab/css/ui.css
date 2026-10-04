@@ -30,7 +30,7 @@
 .menu-item { transition: background .1s; }
 .menu-item:hover { background: var(--panel-2); }
 .menu-item.danger { color: var(--danger); }
-.menu-check { color: var(--accent); font-size: 12px; }
+.menu-check { display: grid; width: 14px; color: var(--accent); }
 .menu-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .popover { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
@@ -69,6 +69,11 @@
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 .toast-action { padding: 0; border: 0; background: none; color: var(--accent); font-weight: 600; }
+
+/* fresh-install prompt to bring back a saved backup; sits above the toast */
+.restore-banner { bottom: 76px; }
+.banner-dismiss { padding: 0; border: 0; background: none; color: var(--muted, inherit); opacity: .7; }
+.banner-dismiss:hover { opacity: 1; }
 
 /* ---------- box select ---------- */
 .marquee {
