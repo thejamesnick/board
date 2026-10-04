@@ -77,6 +77,7 @@
   font-size: 13px;
   transition: background .15s, color .15s;
 }
+.zoom #zoom-in, .zoom #zoom-out { display: grid; place-items: center; }
 .zoom button:hover { background: var(--panel-2); color: var(--text); }
 #zoom-level { min-width: 52px; border-inline: 1px solid var(--panel-2); font: 12px var(--mono); font-variant-numeric: tabular-nums; }
 

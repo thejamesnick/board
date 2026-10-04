@@ -1,6 +1,7 @@
 // Mouse, trackpad, keyboard, paste and drag-and-drop on the board.
 
 import { $, isTyping } from './dom.js';
+import { icon } from './icons.js';
 import { store, board, save } from './state.js';
 import { viewport, world, linksSvg, applyView, toWorld, viewCenter, panBy, zoomAt, zoomBy, setZoom, centerView } from './view.js';
 import { addCard, addImageCard, switchBoard } from './board.js';
@@ -75,6 +76,8 @@ function initPanning() {
     else panBy(-e.deltaX * SCROLL_SPEED, -e.deltaY * SCROLL_SPEED);
   }, { passive: false });
 
+  $('#zoom-in').innerHTML = icon('plus', 14);
+  $('#zoom-out').innerHTML = icon('minus', 14);
   $('#zoom-in').addEventListener('click', () => zoomBy(1.2));
   $('#zoom-out').addEventListener('click', () => zoomBy(1 / 1.2));
   $('#zoom-level').addEventListener('click', () => setZoom(1));

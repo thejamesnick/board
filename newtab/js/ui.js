@@ -1,6 +1,7 @@
 // Floating menus, popovers and the toast.
 
 import { $, h } from './dom.js';
+import { icon } from './icons.js';
 
 let floating = null;
 let floatingAnchor = null;
@@ -49,7 +50,7 @@ export function openMenu(anchor, items) {
       role: 'menuitem',
       onclick: () => { closeFloating(); it.action(); },
     },
-      h('span', { class: 'menu-check' }, it.checked ? '✓' : ''),
+      h('span', { class: 'menu-check', html: it.checked ? icon('check', 14) : '' }),
       h('span', { class: 'menu-label' }, it.label),
       it.hint ? h('kbd', {}, it.hint) : null);
   }));
